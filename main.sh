@@ -52,3 +52,4 @@ function status() {
 		echo "Wifi is turned off"
 	fi
 }
+status
