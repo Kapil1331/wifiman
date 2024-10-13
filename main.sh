@@ -42,3 +42,13 @@ function off() {
 
 }
 # off
+
+function status() {
+	
+	status=$(nmcli radio wifi)
+	if [[ $status == "enabled" ]]; then
+		echo "Wifi is up and running"
+	else
+		echo "Wifi is turned off"
+	fi
+}
