@@ -54,9 +54,17 @@ function connect() {
 	echo "Enter ssid" 
 	read ssid
 	if listp | grep -q "$ssid"; then
-		nmcli device wifi connect "$ssid"
+		password=$(nmcli connection show "$ssid" --show-secrets | grep -i .psk: | awk '{print $2}') 
+		nmcli device wifi connect "$ssid" password "$password"
+		if [ $? -eq 0 ]; then
+    			echo "Successfully connected to $ssid"
+		else
+    			echo "Failed to connect to $ssid"
+		fi
 	else
-		echo "Enter password"
+		echo "The connection is not saved enter the password : "
+		read password
+		nmcli device wifi connect "$ssid" password "$password"
 	fi
 
 
@@ -83,8 +91,3 @@ function listp() {
 }
 function="$1"
 $1
-
-
-
-
-
