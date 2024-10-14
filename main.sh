@@ -53,15 +53,34 @@ function off() {
 function connect() {
 	echo "Enter ssid" 
 	read ssid
-	nmcli device wifi connect "$ssid"
+	if listp | grep -q "$ssid"; then
+		nmcli device wifi connect "$ssid"
+	else
+		echo "Enter password"
+	fi
+
 
 }
 
 function listp() {
-	echo"Listing Previously connected networks"
-	nmcli connection show --ask | awk 'NR>1 && $3=="wifi"'{'print $1'}
-}
+	echo "Listing Previously connected networks"
+	nmcli connection show | awk 'NR == 1 {
+    		name_start = index($0, "NAME");
+		uuid_start = index($0, "UUID");
+		type_start = index($0, "TYPE");
+		device_start = index($0, "DEVICE");
+		}
+		NR > 1 {
+			type = substr($0, type_start, device_start - type_start);
+			gsub(/^[[:space:]]+|[[:space:]]+$/, "", type);
+			if(type == "wifi"){
+				name_content = substr($0, name_start, uuid_start - name_start);
+    				gsub(/^[[:space:]]+|[[:space:]]+$/, "", name_content);
+    				print name_content;
+			}
+		}' | sort | uniq
 
+}
 function="$1"
 $1
 
