@@ -1,9 +1,20 @@
 #!/bin/bash
-
-function list() {
+function status() {
 	
 	status=$(nmcli radio wifi)
 	if [[ $status == "enabled" ]]; then
+#		echo "Wifi is up and running"
+		return 0
+	else
+#		echo "Wifi is turned off"
+		return 1
+	fi
+}
+
+function list() {
+	
+	status
+	if [[ $? -eq 0 ]]; then
 		echo "The available wifi networks are : "
 		nmcli -f SSID device wifi list | awk 'NR>1 && $1 != "--"' | sort | uniq
 	
@@ -12,13 +23,10 @@ function list() {
 	fi
 }
 
-list
-
 function on() {
 		
-	status=$(nmcli radio wifi)
-
-	if [[ $status == "enabled" ]]; then
+	status
+	if [[ $? -eq 0 ]]; then
 		echo "Wifi is up and running"
 	else 
 		echo "Turning on wifi..."
@@ -26,13 +34,11 @@ function on() {
 		echo "Wifi is up and running"
 	fi
 }
-on
 
 function off() {
 	
-	status=$(nmcli radio wifi)
-	
-	if [[ $status == "enabled" ]]; then
+	status
+	if [[ $? -eq 0 ]]; then
 		echo "Turning the Wifi off"
 		nmcli radio wifi off
 		echo "Wifi turned off"
@@ -41,15 +47,25 @@ function off() {
 	fi
 
 }
-# off
 
-function status() {
-	
-	status=$(nmcli radio wifi)
-	if [[ $status == "enabled" ]]; then
-		echo "Wifi is up and running"
-	else
-		echo "Wifi is turned off"
-	fi
+
+
+function connect() {
+	echo "Enter ssid" 
+	read ssid
+	nmcli device wifi connect "$ssid"
+
 }
-status
+
+function listp() {
+	echo"Listing Previously connected networks"
+	nmcli connection show --ask | awk 'NR>1 && $3=="wifi"'{'print $1'}
+}
+
+function="$1"
+$1
+
+
+
+
+
