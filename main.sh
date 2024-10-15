@@ -17,7 +17,8 @@ function list() {
 	if [[ $? -eq 0 ]]; then
 		echo "The available wifi networks are : "
 		nmcli -f SSID device wifi list | awk 'NR>1 && $1 != "--"' | sort | uniq
-	
+		echo "Currently connected network : " 
+		nmcli device wifi list | grep \* | awk '{print $3}'
 	else 
 		echo "Turn on wifi to list available networks"
 	fi
@@ -53,6 +54,7 @@ function off() {
 function connect() {
 	echo "Enter ssid" 
 	read ssid
+	echo "$2"
 	if listp | grep -q "$ssid"; then
 		password=$(nmcli connection show "$ssid" --show-secrets | grep -i .psk: | awk '{print $2}') 
 		nmcli device wifi connect "$ssid" password "$password"
