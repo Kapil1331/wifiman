@@ -91,5 +91,17 @@ function listp() {
 		}' | sort | uniq
 
 }
+
+function speed() {
+          status
+	  if [[ $? -eq 0 ]]; then
+		curl https://raw.githubusercontent.com/sivel/speedtest-cli/refs/heads/master/speedtest.py -s | python3 | grep -e "Download" -e "Upload"
+          else
+        	echo "Turning on wifi..."
+          	on
+		curl https://raw.githubusercontent.com/sivel/speedtest-cli/refs/heads/master/speedtest.py -s | python3 | grep -e "Download" -e "Upload"
+          fi
+
+}
 function="$1"
 $1
