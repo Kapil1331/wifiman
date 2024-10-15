@@ -15,9 +15,9 @@ function list() {
 	
 	status
 	if [[ $? -eq 0 ]]; then
-		echo "The available wifi networks are : "
+		echo "Listing the available networks"
 		nmcli -f SSID device wifi list | awk 'NR>1 && $1 != "--"' | sort | uniq
-		echo "Currently connected network : " 
+		echo -n "Currently connected network : "
 		nmcli device wifi list | grep \* | awk '{print $3}'
 	else 
 		echo "Turn on wifi to list available networks"
