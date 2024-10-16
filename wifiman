@@ -60,7 +60,7 @@ function off() {
 function connect() {
 	list
 	echo ""
-	echo -n "Enter ssid : "
+	echo -n "Enter ssid to connect to :"
 	read ssid
 	echo "$2"
 	if listp | grep -q "$ssid"; then
@@ -146,5 +146,6 @@ if [[ $# -ne 1 && $# -ne 2 ]]; then
 	printf "%-12s: %s\n" "connect" "Connect to a particular SSID"
 	printf "%-12s: %s\n" "listp" "List the previously connected networks"
 	printf "%-12s: %s\n" "speed" "Check the Download and Upload speed of the currently connected network"
+	printf "%-12s: %s\n" "disconnect" "Disconnect from the currently connected network"
 fi
 $1
