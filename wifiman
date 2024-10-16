@@ -104,4 +104,19 @@ function speed() {
 
 }
 function="$1"
+if [[ $? -eq 0 ]];then
+	bold="\e[1m"
+	normal="\e[0m"
+	printf "${bold}%s${normal}\n" "Simplified WiFi Connection Manager tool"
+	printf "${bold}%s${normal} %s\n" "Usage:" "wifiman <command> [flags]"
+	printf "${bold}%s${normal}\n" "Commands:"
+
+	printf "%-12s: %s\n" "status" "Get the current status of WiFi"
+	printf "%-12s: %s\n" "list" "List the available networks"
+	printf "%-12s: %s\n" "on" "Turn the WiFi on"
+	printf "%-12s: %s\n" "off" "Turn the WiFi off"
+	printf "%-12s: %s\n" "connect" "Connect to a particular SSID"
+	printf "%-12s: %s\n" "listp" "List the previously connected networks"
+	printf "%-12s: %s\n" "speed" "Check the Download and Upload speed of the currently connected network"
+fi
 $1
