@@ -17,8 +17,14 @@ function list() {
 	if [[ $? -eq 0 ]]; then
 		echo "Listing the available networks"
 		nmcli -f SSID device wifi list | awk 'NR>1 && $1 != "--"' | sort | uniq
-		echo -n "Currently connected network : "
-		nmcli device wifi list | grep \* | awk '{print $3}'
+		ssid=$(nmcli -t -f active,ssid dev wifi | egrep '^yes' | cut -d':' -f2) 
+		# echo -n "Currently connected network : "
+
+		if [ -z "$ssid" ]; then
+    			echo "No active WiFi connection."
+		else
+    			echo "Currently connected to: $ssid"
+		fi
 	else 
 		echo "Turn on wifi to list available networks"
 	fi
@@ -52,12 +58,15 @@ function off() {
 
 
 function connect() {
-	echo "Enter ssid" 
+	list
+	echo ""
+	echo -n "Enter ssid : "
 	read ssid
 	echo "$2"
 	if listp | grep -q "$ssid"; then
 		password=$(nmcli connection show "$ssid" --show-secrets | grep -i .psk: | awk '{print $2}') 
-		nmcli device wifi connect "$ssid" password "$password"
+		nmcli device wifi connect "$ssid" password "$password" > logs
+		rm ./logs
 		if [ $? -eq 0 ]; then
     			echo "Successfully connected to $ssid"
 		else
@@ -103,8 +112,27 @@ function speed() {
           fi
 
 }
+
+function disconnect() {
+        status
+	if [[ $? -eq 0 ]]; then
+		ssid=$(nmcli -t -f active,ssid dev wifi | egrep '^yes' | cut -d':' -f2) 
+		nmcli -t -f active,ssid dev wifi | egrep '^yes' | cut -d':' -f2 | tr '\n' '\0' | xargs -0 nmcli con down > logs
+		rm ./logs
+		if [ -z "$ssid" ]; then
+    			echo "No active WiFi connection."
+		else
+    			echo "Disconnected from: $ssid"
+		fi
+
+	else
+        	echo "Turning on wifi..."
+          	on
+	fi
+}
+
 function="$1"
-if [[ $? -eq 0 ]];then
+if [[ $# -ne 1 && $# -ne 2 ]]; then
 	bold="\e[1m"
 	normal="\e[0m"
 	printf "${bold}%s${normal}\n" "Simplified WiFi Connection Manager tool"
