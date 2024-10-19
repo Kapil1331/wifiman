@@ -135,7 +135,7 @@ function="$1"
 if [[ $# -ne 1 && $# -ne 2 ]]; then
 	bold="\e[1m"
 	normal="\e[0m"
-	printf "${bold}%s${normal}\n" "Simplified WiFi Connection Manager tool"
+	printf "${bold}%s${normal}\n" "Simplified WiFi Connection Manager"
 	printf "${bold}%s${normal} %s\n" "Usage:" "wifiman <command> [flags]"
 	printf "${bold}%s${normal}\n" "Commands:"
 
