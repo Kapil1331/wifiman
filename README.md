@@ -1,6 +1,5 @@
 Simplified WiFi Connection Manager
-Usage: wifiman <command> [flags]
-Commands:
+Usage: wifiman <command> [flags]Commands:
 status      : Get the current status of WiFi
 list        : List the available networks
 on          : Turn the WiFi on
