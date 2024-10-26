@@ -1,4 +1,5 @@
 #!/bin/bash
+
 function status() {
 	
 	status=$(nmcli radio wifi)
