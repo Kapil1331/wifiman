@@ -9,3 +9,7 @@
 - **listp**       : List the previously connected networks  
 - **speed**       : Check the Download and Upload speed of the currently connected network  
 - **disconnect**  : Disconnect from the currently connected network
+
+## To enable auto-complete
+- sudo cp wifiman /usr/local/bin/
+- sudo cp wifiman_completion.sh /etc/bash_completion.d/
