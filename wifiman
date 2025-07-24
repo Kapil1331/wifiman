@@ -1,157 +1,150 @@
 #!/bin/bash
 
 function status() {
-	
-	status=$(nmcli radio wifi)
-	if [[ $status == "enabled" ]]; then
-#		echo "Wifi is up and running"
-		return 0
-	else
-#		echo "Wifi is turned off"
-		return 1
-	fi
+    status=$(nmcli radio wifi)
+    if [[ $status == "enabled" ]]; then
+        return 0
+    else
+        return 1
+    fi
 }
 
 function list() {
-	
-	status
-	if [[ $? -eq 0 ]]; then
-		echo "Listing the available networks"
-		nmcli -f SSID device wifi list | awk 'NR>1 && $1 != "--"' | sort | uniq
-		ssid=$(nmcli -t -f active,ssid dev wifi | egrep '^yes' | cut -d':' -f2) 
-		# echo -n "Currently connected network : "
+    status
+    if [[ $? -eq 0 ]]; then
+        echo "Listing the available networks"
+        nmcli -f SSID device wifi list | awk 'NR>1 && $1 != "--"' | sort | uniq
+        ssid=$(nmcli -t -f active,ssid dev wifi | egrep '^yes' | cut -d':' -f2) 
 
-		if [ -z "$ssid" ]; then
-    			echo "No active WiFi connection."
-		else
-    			echo "Currently connected to: $ssid"
-		fi
-	else 
-		echo "Turn on wifi to list available networks"
-	fi
+        if [ -z "$ssid" ]; then
+                echo "No active WiFi connection."
+        else
+                echo -n "Currently connected to: $ssid"
+        fi
+    else 
+        echo "Turn on wifi to list available networks"
+    fi
 }
 
 function on() {
-		
-	status
-	if [[ $? -eq 0 ]]; then
-		echo "Wifi is up and running"
-	else 
-		echo "Turning on wifi..."
-		nmcli radio wifi on
-		echo "Wifi is up and running"
-	fi
+    status
+    if [[ $? -eq 0 ]]; then
+        echo "Wifi is up and running"
+    else 
+        echo "Turning on wifi..."
+        nmcli radio wifi on
+        echo "Wifi is up and running"
+    fi
 }
 
 function off() {
-	
-	status
-	if [[ $? -eq 0 ]]; then
-		echo "Turning the Wifi off"
-		nmcli radio wifi off
-		echo "Wifi turned off"
-	else
-		echo "Wifi already turned off"
-	fi
+    status
+    if [[ $? -eq 0 ]]; then
+        echo "Turning the Wifi off"
+        nmcli radio wifi off
+        echo "Wifi turned off"
+    else
+        echo "Wifi already turned off"
+    fi
 
 }
 
 function connect() {
-	list
-	echo ""
-	echo -n "Enter ssid to connect to :"
-	read ssid
-	echo "$2"
-	if listp | grep -q "$ssid"; then
-		password=$(nmcli connection show "$ssid" --show-secrets | grep -i .psk: | awk '{print $2}') 
-		nmcli device wifi connect "$ssid" password "$password" > logs
-		rm ./logs
-		if [ $? -eq 0 ]; then
-    			echo "Successfully connected to $ssid"
-		else
-    			echo "Failed to connect to $ssid"
-		fi
-	else
-		echo "The connection is not saved enter the password : "
-		read password
-		nmcli device wifi connect "$ssid" password "$password"
-	fi
+    list
+    echo ""
+    echo -n "Enter ssid to connect to :"
+    read -r ssid
+    if listp | grep -q "$ssid"; then
+        password=$(nmcli connection show "$ssid" --show-secrets | grep -i .psk: | awk '{print $2}') 
+        nmcli device wifi connect "$ssid" password "$password" > logs
+        rm ./logs
+        if [ $? -eq 0 ]; then
+                echo "Successfully connected to $ssid"
+        else
+                echo "Failed to connect to $ssid"
+        fi
+    else
+        # Add a check to chekc the existance of the ssid
+        echo -n "The connection is not saved enter the password : "
+        read password
+        nmcli device wifi connect "$ssid" password "$password"
+    fi
 
 
 }
 
 function listp() {
-	echo "Listing Previously connected networks"
-	nmcli connection show | awk 'NR == 1 {
-    		name_start = index($0, "NAME");
-		uuid_start = index($0, "UUID");
-		type_start = index($0, "TYPE");
-		device_start = index($0, "DEVICE");
-		}
-		NR > 1 {
-			type = substr($0, type_start, device_start - type_start);
-			gsub(/^[[:space:]]+|[[:space:]]+$/, "", type);
-			if(type == "wifi"){
-				name_content = substr($0, name_start, uuid_start - name_start);
-    				gsub(/^[[:space:]]+|[[:space:]]+$/, "", name_content);
-    				print name_content;
-			}
-		}' | sort | uniq
+    echo "Listing Previously connected networks"
+    nmcli connection show | awk 'NR == 1 {
+            name_start = index($0, "NAME");
+        uuid_start = index($0, "UUID");
+        type_start = index($0, "TYPE");
+        device_start = index($0, "DEVICE");
+        }
+        NR > 1 {
+            type = substr($0, type_start, device_start - type_start);
+            gsub(/^[[:space:]]+|[[:space:]]+$/, "", type);
+            if(type == "wifi"){
+                name_content = substr($0, name_start, uuid_start - name_start);
+                    gsub(/^[[:space:]]+|[[:space:]]+$/, "", name_content);
+                    print name_content;
+            }
+        }' | sort | uniq
 
 }
 
 function speed() {
           status
-	  if [[ $? -eq 0 ]]; then
-		curl https://raw.githubusercontent.com/sivel/speedtest-cli/refs/heads/master/speedtest.py -s | python3 | grep -e "Download" -e "Upload"
+      if [[ $? -eq 0 ]]; then
+        curl https://raw.githubusercontent.com/sivel/speedtest-cli/refs/heads/master/speedtest.py -s | python3 | grep -e "Download" -e "Upload"
           else
-        	echo "Turning on wifi..."
-          	on
-		curl https://raw.githubusercontent.com/sivel/speedtest-cli/refs/heads/master/speedtest.py -s | python3 | grep -e "Download" -e "Upload"
+            echo "Turning on wifi..."
+            on
+        curl https://raw.githubusercontent.com/sivel/speedtest-cli/refs/heads/master/speedtest.py -s | python3 | grep -e "Download" -e "Upload"
           fi
 
 }
 
 function disconnect() {
         status
-	if [[ $? -eq 0 ]]; then
-		ssid=$(nmcli -t -f active,ssid dev wifi | egrep '^yes' | cut -d':' -f2) 
-		nmcli -t -f active,ssid dev wifi | egrep '^yes' | cut -d':' -f2 | tr '\n' '\0' | xargs -0 nmcli con down > logs
-		rm ./logs
-		if [ -z "$ssid" ]; then
-    			echo "No active WiFi connection."
-		else
-    			echo "Disconnected from: $ssid"
-		fi
+    if [[ $? -eq 0 ]]; then
+        ssid=$(nmcli -t -f active,ssid dev wifi | egrep '^yes' | cut -d':' -f2) 
+        nmcli -t -f active,ssid dev wifi | egrep '^yes' | cut -d':' -f2 | tr '\n' '\0' | xargs -0 nmcli con down > logs
+        rm ./logs
+        if [ -z "$ssid" ]; then
+                echo "No active WiFi connection."
+        else
+                echo "Disconnected from: $ssid"
+        fi
 
-	else
-        	echo "Turning on wifi..."
-          	on
-	fi
+    else
+            echo "Turning on wifi..."
+            on
+    fi
 }
 
 function usage() {
-	bold="\e[1m"
-	normal="\e[0m"
-	printf "${bold}%s${normal}\n" "Simplified WiFi Connection Manager"
-	printf "${bold}%s${normal} %s\n" "Usage:" "wifiman <command> [flags]"
-	printf "${bold}%s${normal}\n" "Commands:"
-	printf "%-12s: %s\n" "status" "Get the current status of WiFi"
-	printf "%-12s: %s\n" "list" "List the available networks"
-	printf "%-12s: %s\n" "on" "Turn the WiFi on"
-	printf "%-12s: %s\n" "off" "Turn the WiFi off"
-	printf "%-12s: %s\n" "connect" "Connect to a particular SSID"
-	printf "%-12s: %s\n" "listp" "List the previously connected networks"
-	printf "%-12s: %s\n" "speed" "Check the Download and Upload speed of the currently connected network"
-	printf "%-12s: %s\n" "disconnect" "Disconnect from the currently connected network"
+    bold="\e[1m"
+    normal="\e[0m"
+    printf "${bold}%s${normal}\n" "Simplified WiFi Connection Manager"
+    printf "${bold}%s${normal} %s\n" "Usage:" "wifiman <command> [flags]"
+    printf "${bold}%s${normal}\n" "Commands:"
+    printf "%-12s: %s\n" "status" "Get the current status of WiFi"
+    printf "%-12s: %s\n" "list" "List the available networks"
+    printf "%-12s: %s\n" "on" "Turn the WiFi on"
+    printf "%-12s: %s\n" "off" "Turn the WiFi off"
+    printf "%-12s: %s\n" "connect" "Connect to a particular SSID"
+    printf "%-12s: %s\n" "listp" "List the previously connected networks"
+    printf "%-12s: %s\n" "speed" "Check the Download and Upload speed of the currently connected network"
+    printf "%-12s: %s\n" "disconnect" "Disconnect from the currently connected network"
 }
 
 allowed_commands=("status" "list" "on" "off" "connect" "listp" "speed" "disconnect")
 
 command="$1"
 if [[ ! " ${allowed_commands[@]} " =~ " ${command} " ]]; then
-	usage
-	exit 1
+    usage
+    exit 1
 fi
 
 $command
@@ -159,20 +152,20 @@ $command
 : '
 function="$1"
 if [[ $# -ne 1 && $# -ne 2 ]]; then
-	bold="\e[1m"
-	normal="\e[0m"
-	printf "${bold}%s${normal}\n" "Simplified WiFi Connection Manager"
-	printf "${bold}%s${normal} %s\n" "Usage:" "wifiman <command> [flags]"
-	printf "${bold}%s${normal}\n" "Commands:"
+    bold="\e[1m"
+    normal="\e[0m"
+    printf "${bold}%s${normal}\n" "Simplified WiFi Connection Manager"
+    printf "${bold}%s${normal} %s\n" "Usage:" "wifiman <command> [flags]"
+    printf "${bold}%s${normal}\n" "Commands:"
 
-	printf "%-12s: %s\n" "status" "Get the current status of WiFi"
-	printf "%-12s: %s\n" "list" "List the available networks"
-	printf "%-12s: %s\n" "on" "Turn the WiFi on"
-	printf "%-12s: %s\n" "off" "Turn the WiFi off"
-	printf "%-12s: %s\n" "connect" "Connect to a particular SSID"
-	printf "%-12s: %s\n" "listp" "List the previously connected networks"
-	printf "%-12s: %s\n" "speed" "Check the Download and Upload speed of the currently connected network"
-	printf "%-12s: %s\n" "disconnect" "Disconnect from the currently connected network"
+    printf "%-12s: %s\n" "status" "Get the current status of WiFi"
+    printf "%-12s: %s\n" "list" "List the available networks"
+    printf "%-12s: %s\n" "on" "Turn the WiFi on"
+    printf "%-12s: %s\n" "off" "Turn the WiFi off"
+    printf "%-12s: %s\n" "connect" "Connect to a particular SSID"
+    printf "%-12s: %s\n" "listp" "List the previously connected networks"
+    printf "%-12s: %s\n" "speed" "Check the Download and Upload speed of the currently connected network"
+    printf "%-12s: %s\n" "disconnect" "Disconnect from the currently connected network"
 fi
 $1
 '
