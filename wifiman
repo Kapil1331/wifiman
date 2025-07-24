@@ -12,14 +12,19 @@ function status() {
 function list() {
     status
     if [[ $? -eq 0 ]]; then
-        echo "Listing the available networks"
-        nmcli -f SSID device wifi list | awk 'NR>1 && $1 != "--"' | sort | uniq
+        echo "Listing the available networks:"
+        mapfile -t network_list < <(nmcli -t -f SSID device wifi list | grep -v '^$' | sort | uniq)
+        
+        for device in "${network_list[@]}"; do
+            echo "$device"
+        done
+        
         ssid=$(nmcli -t -f active,ssid dev wifi | egrep '^yes' | cut -d':' -f2) 
 
         if [ -z "$ssid" ]; then
-                echo "No active WiFi connection."
+            echo "No active WiFi connection."
         else
-                echo -n "Currently connected to: $ssid"
+            echo -n "Currently connected to :$ssid"
         fi
     else 
         echo "Turn on wifi to list available networks"
@@ -49,11 +54,24 @@ function off() {
 
 }
 
+function check_validity() {
+    for device in "${network_list[@]}" 
+    do
+        if [ "$device" == "$ssid" ]; then
+            return "1"
+        fi
+    done
+    return "0"
+}
+
 function connect() {
     list
     echo ""
     echo -n "Enter ssid to connect to :"
     read -r ssid
+
+    check_validity
+    # todo : write a prompt here to reenter a valid ssid 
     if listp | grep -q "$ssid"; then
         password=$(nmcli connection show "$ssid" --show-secrets | grep -i .psk: | awk '{print $2}') 
         nmcli device wifi connect "$ssid" password "$password" > logs
@@ -65,7 +83,7 @@ function connect() {
         fi
     else
         # Add a check to chekc the existance of the ssid
-        echo -n "The connection is not saved enter the password : "
+        echo -n "The connection is not saved enter the password :"
         read password
         nmcli device wifi connect "$ssid" password "$password"
     fi
