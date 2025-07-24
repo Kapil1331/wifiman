@@ -10,6 +10,9 @@
 - **speed**       : Check the Download and Upload speed of the currently connected network  
 - **disconnect**  : Disconnect from the currently connected network
 
-## To enable auto-complete
+## Enable script to execute Globally
 - sudo cp wifiman /usr/local/bin/
+
+## Enable Auto-completion
 - sudo cp wifiman_completion.sh /etc/bash_completion.d/
+- exec $SHELL
